@@ -30,13 +30,33 @@ func TestCopyFile(t *testing.T) {
 		}
 	}
 
+	pass := func(t *testing.T, src, dst string, err error) {
+		if err != nil {
+			t.Errorf("CopyFile(%q, %q): got %v, expected %v", dst, src, err, nil)
+		}
+	}
+
 	tests := []struct {
-		setup func(t *testing.T)
+		setup    func(t *testing.T)
+		dst, src string // automatically joined to testroot
+		check    func(t *testing.T, src, dst string, err error)
 	}{{
 		setup: func(*testing.T) {
 			mkdir(0755, "a")
 			mkfile(0644, "file1", "a", "file1")
 		},
+		dst:   "a/file2",
+		src:   "a/file1",
+		check: pass,
+	}, {
+		setup: func(*testing.T) {
+			mkdir(0755, "a")
+			mkfile(0644, "file1", "a", "file1")
+			mkfile(0644, "file2", "a", "file2")
+		},
+		dst:   "a/file2",
+		src:   "a/file1",
+		check: pass,
 	}}
 
 	// use a single tmpdir as the root of all tests to avoid spewing a million
@@ -58,5 +78,10 @@ func TestCopyFile(t *testing.T) {
 			t.Fatal(err)
 		}
 		tt.setup(t)
+		src := joinpath(filepath.FromSlash(tt.src))
+		dst := joinpath(filepath.FromSlash(tt.dst))
+
+		err := CopyFile(dst, src)
+		tt.check(t, src, dst, err)
 	}
 }
