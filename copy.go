@@ -7,8 +7,15 @@ import (
 	"path/filepath"
 )
 
+// A Copier copies files.
+// The operation of Copier's public functions are controled by its
+// public fields. If none are set, the Copier behaves accoriding to
+// the zero value rules of each public field.
+type Copier struct {
+}
+
 // CopyFile copies the contents of src to dst atomically.
-func CopyFile(dst, src string) error {
+func (c *Copier) CopyFile(dst, src string) error {
 	in, err := os.Open(src)
 	if err != nil {
 		return err
@@ -38,4 +45,11 @@ func CopyFile(dst, src string) error {
 		return err
 	}
 	return nil
+}
+
+// CopyFile is a convenience method that calls CopyFile on a Copier
+// zero value.
+func CopyFile(dst, src string) error {
+	var c Copier
+	return c.CopyFile(dst, src)
 }
